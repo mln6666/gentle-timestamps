@@ -7,9 +7,13 @@ Settings apply live, with no restart.
 ## Install
 
 ```sh
-pi install git:github.com/mln6666/gentle-timestamps   # Pi / Gentle Shell package install
-npm run install-extension                             # or, from a clone: copy the file into the extensions folder
+pi install npm:gentle-timestamps             # Pi
+gentle-shell install npm:gentle-timestamps   # Gentle Shell
+npm run install-extension                    # or, from a clone: copy the file into the extensions folder
 ```
+
+Use one install method: a package install next to a copied `gentle-timestamps.ts` in the
+extensions folder registers the extension twice.
 
 Upgrading from gentle-when keeps your settings (they are copied from `when.json`); remove the old
 `gentle-when.ts` from the extensions folder (`npm run install-extension` does it).
