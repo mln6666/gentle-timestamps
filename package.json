@@ -1,6 +1,6 @@
 {
 	"name": "gentle-timestamps",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"type": "module",
 	"description": "Timestamps in the corner of every Pi / Gentle Shell chat message, configurable live with /gentle:timestamps.",
 	"keywords": [
