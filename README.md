@@ -24,7 +24,7 @@ Upgrading from gentle-when keeps your settings (they are copied from `when.json`
 
 | Row | Effect |
 | --- | --- |
-| Timestamps | Toggle on / off |
+| Timestamps | **Enter** toggles on / off and saves at once; the menu stays open |
 | Format | Today's messages: Time, 12-hour, Time + relative, Relative, Date + time (`16/11 14:32`), ISO date + time, the current custom format, or `Custom…` (strftime) |
 | Style | `Minimal` (text toned from the box background), `Accent` (theme accent color) or `Badge` (`▏23:17▕`: thin bars in the border color framing the panel surface, muted text); stored as `plain` / `accent` / `block` |
 | Older messages | Earlier days: Same as today, Smart, Smart numeric (default), Date + time (`16/11 14:32`), ISO date + time, Relative, or `Custom…` |

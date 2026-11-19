@@ -130,14 +130,43 @@ test("older format is editable from the main menu and same-as-today still applie
 	assert.equal(h.notes.length, 1);
 });
 
-test("style picker and timestamp toggle keep their existing behavior", async () => {
+test("style picker keeps its existing behavior", async () => {
 	const styled = harness([main(2), { title: "Stamp style", keys: ["down", "down", "confirm"] }, close]);
 	await styled.run();
 	assert.equal(stored().style, "block");
 	assert.equal(styled.notes.length, 1);
-	const toggled = harness([main(0), close]);
-	await toggled.run();
+});
+
+// Closing and reopening the menu around a toggle flashed the terminal; the menu now stays open.
+test("Enter on Timestamps toggles in place: the menu stays open, repaints the row and saves without a notice", async () => {
+	const h = harness([{ ...close, inspect(_lines, component) {
+		const first = () => row(strip(component.render(80)[1]));
+		component.handleInput("confirm");
+		assert.equal(first(), "Timestamps Off");
+		assert.equal(stored().enabled, false);
+		assert.equal(stamp(), "");
+		component.handleInput("confirm");
+		assert.equal(first(), "Timestamps On");
+		assert.equal(stored().enabled, true);
+		assert.equal(stamp(), ext.strftime(new Date(), "%H:%M"));
+		component.handleInput("confirm");
+	} }]);
+	await h.run();
 	assert.equal(stored().enabled, false);
 	assert.equal(stamp(), "");
-	assert.deepEqual(toggled.notes, [{ message: "gentle-timestamps: timestamps off", type: "info" }]);
+	assert.deepEqual(h.notes, []);
+	assert.equal(h.steps.length, 0);
+});
+
+test("an in-menu toggle survives cursor moves and a later style change", async () => {
+	const h = harness([{ ...close, keys: ["down", "down", "confirm"], inspect(_lines, component) {
+		component.handleInput("confirm");
+		component.handleInput("down");
+		component.handleInput("up");
+		assert.equal(stamp(), "");
+	} }, { title: "Stamp style", keys: ["down", "down", "confirm"] }, close]);
+	await h.run();
+	assert.deepEqual(stored(), { ...ext.DEFAULTS, enabled: false, style: "block" });
+	assert.equal(stamp(), "");
+	assert.equal(h.notes.length, 1);
 });

@@ -835,7 +835,8 @@ function describe(config: TimestampsConfig): string {
 	return `${formatLabel(config.format)}${older}${style}`;
 }
 
-function applyConfig(next: TimestampsConfig, ctx: ExtensionCommandContext): void {
+/** `quiet` skips the success notice where the change is already visible (the menu's On/Off row). */
+function applyConfig(next: TimestampsConfig, ctx: ExtensionCommandContext, quiet = false): void {
 	let failure: string | undefined;
 	try {
 		writeConfig(next);
@@ -846,7 +847,9 @@ function applyConfig(next: TimestampsConfig, ctx: ExtensionCommandContext): void
 	state.unsaved = failure !== undefined;
 	state.fileMtime = safely(() => statSync(configPath()).mtimeMs) ?? 0;
 	state.checkedAt = Date.now();
-	if (failure === undefined) ctx.ui.notify(`gentle-timestamps: ${describe(next)}`, "info");
+	if (failure === undefined) {
+		if (!quiet) ctx.ui.notify(`gentle-timestamps: ${describe(next)}`, "info");
+	}
 	else ctx.ui.notify(`gentle-timestamps: ${describe(next)} (could not save settings: ${failure}; applies to this session only)`, "warning");
 }
 
@@ -868,13 +871,23 @@ const styleLabel = (style: TimestampsConfig["style"]) => STYLES.find((s) => s.va
 const MENU_HINT = "↑/↓ navigate · Enter select · Esc close";
 // Values start one column after the longest label ("Older messages").
 const settingRow = (label: string, value: string) => `${label.padEnd(14)} ${value}`;
-type PickItem = { label: string; preview: TimestampsConfig | undefined; help?: string };
+/**
+ * `act` runs on Enter and keeps the picker open: closing and reopening it around a change
+ * that repaints every stamp flashed the terminal. A function label is re-read each frame.
+ */
+type PickItem = {
+	label: string | (() => string);
+	preview: TimestampsConfig | undefined;
+	help?: string;
+	act?: () => void;
+};
 
 /**
  * Live-preview picker: moving the cursor tentatively applies the item's config,
  * so the chat's stamps repaint as you move. Items without a preview fall back to
  * the baseline. Enter returns the index with the tentative config still applied
- * (the caller persists it); Esc restores the baseline and returns undefined.
+ * (the caller persists it), or runs the item's `act` and stays open (the result becomes
+ * the new baseline); Esc restores the baseline and returns undefined.
  */
 async function previewPick(
 	ctx: ExtensionCommandContext,
@@ -883,7 +896,7 @@ async function previewPick(
 	startIndex: number,
 	hint = "↑/↓ preview · Enter confirm · Esc cancel",
 ): Promise<number | undefined> {
-	const baseline = state.config;
+	let baseline = state.config;
 	const withHelp = items.some((item) => item.help);
 	const result = await ctx.ui.custom<number | undefined>(
 		(tui, theme, keybindings, done) => {
@@ -895,7 +908,7 @@ async function previewPick(
 					// Pickers whose items explain themselves keep one help row (always present, so the
 					// list does not jump) between the items and the keys hint.
 					const help = withHelp ? [items[index].help ?? ""] : [];
-					const rows = [title, ...items.map((it, i) => `${i === index ? "●" : "○"} ${it.label}`), ...help, hint];
+					const rows = [title, ...items.map((it, i) => `${i === index ? "●" : "○"} ${typeof it.label === "function" ? it.label() : it.label}`), ...help, hint];
 					return rows.map((row, i) => {
 						const cut = fit(row, width);
 						if (i === 0) return theme.fg("accent", cut);
@@ -906,7 +919,13 @@ async function previewPick(
 				handleInput(data: string): void {
 					if (keybindings.matches(data, "tui.select.up")) index = (index - 1 + items.length) % items.length;
 					else if (keybindings.matches(data, "tui.select.down")) index = (index + 1) % items.length;
-					else if (keybindings.matches(data, "tui.select.confirm")) return done(index);
+					else if (keybindings.matches(data, "tui.select.confirm")) {
+						const act = items[index].act;
+						if (!act) return done(index);
+						act();
+						baseline = state.config;
+						return tui.requestRender();
+					}
 					else if (keybindings.matches(data, "tui.select.cancel")) return done(undefined);
 					else return;
 					preview();
@@ -987,8 +1006,13 @@ async function openMenu(ctx: ExtensionCommandContext): Promise<void> {
 	let menuIndex = 0;
 	for (;;) {
 		const config = syncConfig();
+		// On/Off toggles inside the open menu; the other rows open a picker.
+		const toggle: PickItem = {
+			label: () => settingRow("Timestamps", state.config.enabled ? "On" : "Off"),
+			preview: undefined,
+			act: () => applyConfig({ ...state.config, enabled: !state.config.enabled }, ctx, true),
+		};
 		const labels = [
-			settingRow("Timestamps", config.enabled ? "On" : "Off"),
 			settingRow("Format", sample(config.format).replace(/^hidden$/, "Hidden")),
 			settingRow("Style", styleLabel(config.style)),
 			settingRow("Older messages", config.formatOlder === null
@@ -996,21 +1020,20 @@ async function openMenu(ctx: ExtensionCommandContext): Promise<void> {
 				: sample(config.formatOlder, Date.now() - TWO_DAYS).replace(/^hidden$/, "Hidden")),
 		];
 		const picked = await previewPick(ctx, "Message timestamps",
-			labels.map((label) => ({ label, preview: undefined })), menuIndex, MENU_HINT);
+			[toggle, ...labels.map((label) => ({ label, preview: undefined }))], menuIndex, MENU_HINT);
 		if (picked === undefined) return;
 		menuIndex = picked;
-		if (picked === 0) {
-			applyConfig({ ...config, enabled: !config.enabled }, ctx);
-		} else if (picked === 1) {
-			const next = await askFormat(ctx, config);
+		const current = state.config; // may differ from `config` after an in-menu On/Off toggle
+		if (picked === 1) {
+			const next = await askFormat(ctx, current);
 			if (next) applyConfig(next, ctx);
 		} else if (picked === 2) {
-			const items = STYLES.map((s) => ({ label: s.label, preview: { ...config, style: s.value } }));
+			const items = STYLES.map((s) => ({ label: s.label, preview: { ...current, style: s.value } }));
 			const pickedStyle = await previewPick(ctx, "Stamp style", items,
-				Math.max(0, STYLES.findIndex((s) => s.value === config.style)));
+				Math.max(0, STYLES.findIndex((s) => s.value === current.style)));
 			if (pickedStyle !== undefined) applyConfig(items[pickedStyle].preview, ctx);
 		} else {
-			const next = await askOlderFormat(ctx, config);
+			const next = await askOlderFormat(ctx, current);
 			if (next) applyConfig(next, ctx);
 		}
 	}
