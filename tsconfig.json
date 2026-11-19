@@ -1,0 +1,14 @@
+{
+	// Used by `npm run typecheck` (scripts/typecheck.mjs), which adds `paths` for the two Pi
+	// packages in memory, pointing at wherever Pi is installed on this machine.
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"strict": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"types": ["node"]
+	},
+	"files": ["gentle-timestamps.ts"]
+}

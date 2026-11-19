@@ -1,0 +1,56 @@
+{
+	"name": "gentle-timestamps",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "Timestamps in the corner of every Pi / Gentle Shell chat message, configurable live with /gentle:timestamps.",
+	"keywords": [
+		"pi-package",
+		"pi",
+		"pi-extension",
+		"gentle-shell",
+		"timestamps"
+	],
+	"license": "MIT",
+	"author": "Mario Ponce",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mln6666/gentle-timestamps.git"
+	},
+	"homepage": "https://github.com/mln6666/gentle-timestamps#readme",
+	"bugs": "https://github.com/mln6666/gentle-timestamps/issues",
+	"pi": {
+		"extensions": [
+			"./gentle-timestamps.ts"
+		]
+	},
+	"files": [
+		"gentle-timestamps.ts",
+		"README.md",
+		"LICENSE"
+	],
+	"engines": {
+		"node": ">=22.15"
+	},
+	"scripts": {
+		"test": "node --import ./test/setup.mjs --test test/*.test.mjs",
+		"test:contract": "node --import ./test/contract/setup.mjs --test test/contract/*.contract.mjs",
+		"typecheck": "node scripts/typecheck.mjs",
+		"install-extension": "node scripts/install.mjs"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "*",
+		"@earendil-works/pi-tui": "*"
+	},
+	"peerDependenciesMeta": {
+		"@earendil-works/pi-coding-agent": {
+			"optional": true
+		},
+		"@earendil-works/pi-tui": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@types/node": "^22.20.5",
+		"typescript": "^5.9.3"
+	}
+}
