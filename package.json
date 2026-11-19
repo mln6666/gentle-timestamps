@@ -21,7 +21,9 @@
 	"pi": {
 		"extensions": [
 			"./gentle-timestamps.ts"
-		]
+		],
+		"image": "https://raw.githubusercontent.com/mln6666/gentle-timestamps/main/docs/preview.png",
+		"video": "https://raw.githubusercontent.com/mln6666/gentle-timestamps/main/docs/demo.mp4"
 	},
 	"files": [
 		"gentle-timestamps.ts",
