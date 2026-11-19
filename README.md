@@ -4,7 +4,9 @@
 timestamp in the top-right corner of every user, assistant and tool box in the chat.
 Settings apply live, with no restart.
 
-![Chat boxes with Badge-style timestamps in their top-right corner](docs/preview.png)
+[![Chat boxes with Badge-style timestamps in their top-right corner](docs/preview.png)](docs/demo.mp4)
+
+[Watch the demo](docs/demo.mp4): the menu, live format and style previews, and the stamps on every box.
 
 ## Install
 
