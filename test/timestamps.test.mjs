@@ -232,20 +232,10 @@ test("the command is registered with a description", () => {
 	assert.equal(typeof handler, "function");
 });
 
-test("/gentle:when stays available and does exactly what /gentle:timestamps does", async () => {
+test("only /gentle:timestamps is registered; the former /gentle:when is gone", () => {
 	configure();
-	const { commands, notes, ctx } = harness();
-	const alias = commands.get("gentle:when");
-	assert.equal(typeof alias?.handler, "function");
-	assert.match(alias.description, /\/gentle:timestamps/);
-	await alias.handler("off", ctx);
-	assert.equal(JSON.parse(readFileSync(cfgPath, "utf8")).enabled, false);
-	assert.deepEqual(notes.at(-1), { message: "gentle-timestamps: timestamps off", type: "info" });
-	await alias.handler("%H:%M:%S", ctx);
-	assert.equal(ext.readConfig().format, "%H:%M:%S");
-	const before = statSync(cfgPath).mtimeMs;
-	await alias.handler("", ctx); // no argument opens the same menu; cancelling it writes nothing
-	assert.equal(statSync(cfgPath).mtimeMs, before);
+	const { commands } = harness();
+	assert.deepEqual([...commands.keys()], ["gentle:timestamps"]);
 });
 
 test("arguments switch the setting and persist it without a reload", async () => {

@@ -16,8 +16,7 @@ Upgrading from gentle-when keeps your settings (they are copied from `when.json`
 
 ## Usage
 
-`/gentle:timestamps` with no argument opens a menu (the former `/gentle:when` still works
-and does the same):
+`/gentle:timestamps` with no argument opens a menu:
 
 | Row | Effect |
 | --- | --- |

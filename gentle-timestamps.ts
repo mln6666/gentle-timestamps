@@ -1062,6 +1062,4 @@ export default function (pi: ExtensionAPI) {
 		description: "Message timestamps: on | off | reset | <strftime>; no argument opens the menu with live previews",
 		handler,
 	});
-	// The former name keeps working, with the same arguments and the same menu.
-	pi.registerCommand("gentle:when", { description: "Same as /gentle:timestamps", handler });
 }
