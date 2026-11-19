@@ -22,8 +22,7 @@
 		"extensions": [
 			"./gentle-timestamps.ts"
 		],
-		"image": "https://raw.githubusercontent.com/mln6666/gentle-timestamps/main/docs/preview.png",
-		"video": "https://raw.githubusercontent.com/mln6666/gentle-timestamps/main/docs/demo.mp4"
+		"image": "https://raw.githubusercontent.com/mln6666/gentle-timestamps/main/docs/preview.png"
 	},
 	"files": [
 		"gentle-timestamps.ts",
