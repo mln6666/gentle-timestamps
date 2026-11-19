@@ -1059,7 +1059,7 @@ export default function (pi: ExtensionAPI) {
 		await openMenu(ctx);
 	};
 	pi.registerCommand("gentle:timestamps", {
-		description: "Message timestamps: on | off | reset | <strftime>; no argument opens the menu with live previews",
+		description: "Configure message timestamps (on, off, reset, or a time format)",
 		handler,
 	});
 }
